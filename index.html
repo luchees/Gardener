@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Garden</title>
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script type="text/javascript" src="app.js"></script>
+    <script type="text/javascript" src="chartSettings.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+        <a href="spreadsheet.html">spreadsheets</a>
+<div class="field-bigger"> Garden
+    <div class="field" id="clicktemp">Temperature
+        <div id="temp"></div>
+    </div>
+    <div class="field" id="clickhum">Humidity
+        <div id="humidity"></div>
+    </div>
+    <div class="field" id="clicklight">Light
+        <div id="light"></div>
+    </div>
+    <div class="field">
+        <div class="first" id="0">
+            Pot0
+            <div id="pot0"></div>
+        </div>
+        <div class="first" id="1">
+            Pot1
+            <div id="pot1"></div>
+        </div>
+        <div class="first"id="2">
+            Pot2
+            <div id="pot2"></div>
+        </div>
+        <div class="first" id="3">
+            Pot3
+            <div id="pot3"></div>
+        </div>
+    </div>
+</div>
+
+<div style="width:75%;">
+    <div class="chartjs-size-monitor">
+        <div class="chartjs-size-monitor-expand">
+            <div class=""></div>
+        </div>
+        <div class="chartjs-size-monitor-shrink">
+            <div class=""></div>
+        </div>
+    </div>
+    
+    <canvas id="canvas" style="display: block; height: 258px; width: 517px;" width="775" height="387"
+            class="chartjs-render-monitor"></canvas>
+    <div id="slider">
+
+    <select id="minRange" onfocus="this.selectedIndex = -1;">
+    </select>
+    </div>
+    
+</div>
+
+   <!-- <iframe width="100%" height="500px" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ8EPO8oR1nJrXypRpGdENDrGqUCbdd9c8Q-xX07Ntg0xxdgiLQuAroA2W58616ljH97vvdTjeHiWs7/pubhtml?widget=true&amp;headers=false&amp;&amp;gid=0&amp;range=A1:V50"></iframe>
+-->
+</body>
+</html>

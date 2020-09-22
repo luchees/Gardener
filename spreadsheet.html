@@ -1,0 +1,292 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Garden</title>
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <style> 
+        #updated{ 
+            border: 12px solid #f3f3f3; 
+            border-radius: 50%; 
+            border-top: 12px solid #444444; 
+            width: 70px; 
+            height: 70px; 
+            z-index: 1000;
+        } 
+    #loader { 
+            border: 12px solid #f3f3f3; 
+            border-radius: 50%; 
+            border-top: 12px solid #444444; 
+            width: 70px; 
+            height: 70px; 
+            animation: spin 1s linear infinite;
+            z-index: 1000;
+        } 
+          
+        @keyframes spin { 
+            100% { 
+                transform: rotate(360deg); 
+            } 
+        } 
+          
+        .center { 
+            position: absolute; 
+            top: 0; 
+            bottom: 0; 
+            left: 0; 
+            right: 0; 
+            margin: auto; 
+        } 
+    </style>
+</head>
+     
+<body>
+    <div id="loader" class="center"></div> 
+    <div id="updated" class="center"></div> 
+    <button id="autofil">fill in hum and temp</button> 
+        <a href="https://docs.google.com/spreadsheets/d/1gs3kwmmrTrOf4qNMRb8qL9plBrfuU0q5Y-v0G-GdTl0/edit#gid=0">spreadsheets on Excel</a>
+   <div id="body">
+    <table width="100%" id="spreadsheetTable">
+    </table>
+    </div>
+    <script>
+        document.querySelector( "#updated").style.visibility = "hidden"; 
+       document.querySelector( 
+        "#body").style.visibility = "hidden"; 
+        document.querySelector( 
+        "#loader").style.visibility = "visible";      
+                
+             
+   
+    var now = new Date();
+    var start = new Date(now.getFullYear(), 0, 0);
+    var diff = now - start;
+    var oneDay = 1000 * 60 * 60 * 24;
+    var day = Math.floor(diff / oneDay);
+    
+        
+    Currentrow=day-80
+    
+    console.log('Currentrow:' + Currentrow);
+    var baseUrl="http://192.168.0.178:8080";
+    let table = document.querySelector("table");
+    
+    let thead = document.createElement('tr');
+    var url = baseUrl+'/spreadsheet/range?rowfirst='+3+'&rowlast='+Currentrow;
+    headers = ["Dag", "week n°", "Periode", "Licht donker",	"Vochtigheid (%)",	"Vochtigheid grond",	"Temperatuur",	"pH",	"Water? Y/N",	"voeding (g/L)",	"buffer (g/L)",	"zuur [pH]",	"Algemene opmerkingen", "submit"];
+    rowid = [0,2,3,4,13,14,15,16,17,18,19,20,21]
+    let header=document.createElement("tr")
+  
+    for (head in headers){
+        let th = document.createElement("th");
+        let text = document.createTextNode(headers[head]);
+        th.appendChild(text);
+        thead.appendChild(th);
+    }
+        table.append(thead);
+        
+
+ $.getJSON(url, function(data) {
+    
+  var entry = data.values;
+    console.log(data);
+     rows=1;
+  $(entry).each(function(){
+      
+     let row = document.createElement('tr');
+    for (key in rowid) {
+        let cell = document.createElement('td');
+        if (this[rowid[key]] === undefined) { 
+            let input= document.createElement('input');
+            input.classList.add(rows);
+            input.value="" ;
+            cell.append(input);
+        }
+        else {
+            let input= document.createElement('input');
+             input.classList.add(rows);
+            input.value=this[rowid[key]];
+             cell.append(input);
+        }   
+        row.appendChild(cell);
+        
+      }
+      let submit = document.createElement('button');
+      submit.id=rows
+      if (entry[rows-1]===undefined){
+          
+      }
+      else {
+          submit.innerHTML=entry[rows-1][0];
+          submit.onclick=function(){setRow(this.id);}
+   
+            row.appendChild(submit);
+      }
+       
+      
+     
+      rows++;
+     
+       
+      table.appendChild(row);
+      
+     
+       
+  });
+      setTempHumRow(Currentrow-2);
+      document.querySelector( "#loader").style.visibility = "hidden"; 
+        document.querySelector( "#body").style.visibility = "visible"; 
+      $("#autofil")[0].onclick=function(){setTempHumRow(Currentrow-2);}
+      console.log($("#autofil"));
+
+ });
+        function setTempHumRow(rows){
+
+    var request = new XMLHttpRequest();
+    var url="http://192.168.0.178:8080";
+    request.open('GET', url+'/dht/latest?minutes=1', true);
+    rowinput=$('.'+rows);       
+    request.onload = function () {
+        var data =JSON.parse(this.response);
+        if (request.status >= 200 && request.status < 400) {
+             console.log(data);
+            data = data[data.length-1]
+           
+            console.log(rowinput)
+            rowinput[4].value=data.humidity;
+            rowinput[6].value=data.temp;
+            var request1 = new XMLHttpRequest();
+                var url="http://192.168.0.178:8080";
+                request1.open('GET', url+'/pots/latest?potid=0&minutes=1', true);
+
+                request1.onload = function () {
+                    var data =JSON.parse(this.response);
+                    if (request1.status >= 200 && request1.status < 400) {
+                        data = data[data.length-1]
+                        rowinput[5].value="0: "+data.soilTemp;
+                         }
+                        var request2 = new XMLHttpRequest();
+                var url="http://192.168.0.178:8080";
+                request2.open('GET', url+'/pots/latest?potid=1&minutes=1', true);
+
+                request2.onload = function () {
+                    var data =JSON.parse(this.response);
+                    if (request2.status >= 200 && request2.status < 400) {
+                        data = data[data.length-1]
+                        rowinput[5].value+=", 1: "+data.soilTemp;
+                    } 
+                    var request3 = new XMLHttpRequest();
+                var url="http://192.168.0.178:8080";
+                request3.open('GET', url+'/pots/latest?potid=2&minutes=1', true);
+
+                request3.onload = function () {
+                    var data =JSON.parse(this.response);
+                    if (request3.status >= 200 && request3.status < 400) {
+                        data = data[data.length-1]
+                       rowinput[5].value+=", 2: "+data.soilTemp;
+                    }
+                                    var request4 = new XMLHttpRequest();
+                var url="http://192.168.0.178:8080";
+                request4.open('GET', url+'/pots/latest?potid=3&minutes=1', true);
+
+                request4.onload = function () {
+                    var data =JSON.parse(this.response);
+                    if (request4.status >= 200 && request4.status < 400) {
+                        data = data[data.length-1]
+                       rowinput[5].value+=", 3: "+data.soilTemp;
+                    }
+
+            }
+                      request4.send();   
+
+               
+            }
+                request3.send();   
+                }
+                
+                request2.send();   
+                    } 
+
+                request1.send();   
+           
+        } else {
+          console.log('error');
+        }
+       
+    }
+    request.send();
+    
+    
+    
+            }
+// Send request
+                
+   
+ // Send request
+        function setRow(rows){
+                document.querySelector( "#loader").style.visibility = "visible";   
+                console.log(rows);
+              //console.log($('.'+rows));
+                rowid = [0,2,3,4,13,14,15,16,17,18,19,20,21];
+                tableValue=[];
+                rowValues=[];
+                x=0;
+                
+                rowinput=$('.'+rows);
+                for (x=0;x < 22; x++){
+                    rowValues[x]="";
+                  for (row in rowid){
+                      
+                      if (x == rowid[row]){
+                          console.log(rowid[row]);
+                          console.log(rowinput[row].value);
+                          rowValues[x]=rowinput[row].value;
+                      }
+                  }  
+                    
+                    
+                }
+               
+                tableValue.push(rowValues);
+                 console.log(rowValues)
+                id=2+parseInt(rows);
+                rangeValue="Blad1!A"+id+":V"+id;
+                obj= {};
+                obj['values']= tableValue,
+                obj['range']= rangeValue
+                json=JSON.stringify(obj);
+               $.ajax({
+                  type: "POST",
+                  dataType: "json",
+                   contentType: 'application/json',
+                  url: baseUrl+"/spreadsheet/update",
+                  data: json,
+                  success: function(data){
+                        document.querySelector( "#loader").style.visibility = "hidden"; 
+                         document.querySelector( "#updated").style.visibility = "visible";  
+                      document.querySelector( "#updated").innerHTML="Updated";
+                      setTimeout(function()
+                        {
+                            document.querySelector( "#updated").style.visibility = "hidden"; 
+
+                        }, 500);
+                     
+    
+                    }
+                });
+                 
+            }
+
+    
+ 
+
+        
+        
+
+</script>
+</body>
+</html>
